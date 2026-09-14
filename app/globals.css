@@ -1,0 +1,6 @@
+@import "../src/styles/invitation.css";
+
+html,
+body {
+  background: #5b0f22;
+}
