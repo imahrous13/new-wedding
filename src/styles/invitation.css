@@ -11,6 +11,10 @@
   --serif: var(--font-cormorant), "Palatino Linotype", Palatino, serif;
   --script: var(--font-great-vibes), "Snell Roundhand", cursive;
   --script-alt: var(--font-italianno), "Snell Roundhand", cursive;
+  --tex-paper: url("/textures/paper.png");
+  --tex-envelope: url("/textures/envelope-closed.png");
+  --tex-burgundy: url("/textures/burgundy.png");
+  --tex-grain: url("/textures/grain.png");
 }
 
 * {
@@ -90,7 +94,7 @@ body {
   position: absolute;
   inset: 0;
   background:
-    url("/textures/paper.png") center / cover no-repeat;
+    var(--tex-paper) center / cover no-repeat;
   transform: scale(1.02);
 }
 
@@ -509,10 +513,39 @@ body {
   visibility: visible;
 }
 
+.wax-seal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 12;
+  width: 30cqw;
+  transform: translate(-50%, -50%);
+  transform-origin: 50% 50%;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 10px 16px rgba(18, 4, 10, 0.48));
+  will-change: transform, opacity;
+}
+
+.wax-seal img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.invitation.playing .wax-seal {
+  visibility: hidden;
+  opacity: 0;
+}
+
 .invitation:not(.playing) .envelope,
 .invitation:not(.playing) .envelope-cover {
   opacity: 1 !important;
   visibility: visible !important;
+}
+
+.invitation:not(.playing) .envelope {
+  z-index: 9;
 }
 
 .invitation:not(.playing) [data-flap] {
@@ -523,7 +556,7 @@ body {
   position: absolute;
   inset: 0;
   background-color: var(--burgundy);
-  background-image: url("/textures/envelope-closed.png");
+  background-image: var(--tex-envelope);
   background-size: cover;
   background-position: center;
 }
@@ -619,7 +652,7 @@ body {
   position: absolute;
   inset: 0;
   background:
-    url("/textures/burgundy.png") center / cover no-repeat,
+    var(--tex-burgundy) center / cover no-repeat,
     var(--burgundy);
 }
 
@@ -670,7 +703,7 @@ body {
 .grain {
   position: absolute;
   inset: -20%;
-  background: url("/textures/grain.png") repeat;
+  background: var(--tex-grain) repeat;
   background-size: 280px 280px;
   opacity: 0.07;
   mix-blend-mode: overlay;
@@ -696,7 +729,8 @@ body {
   transition: opacity 0.6s ease;
 }
 
-.invitation.idle[data-ready="true"] .open-hint {
+.invitation.sealed[data-ready="true"] .open-hint,
+.invitation.unsealed[data-ready="true"] .open-hint {
   opacity: 1;
 }
 

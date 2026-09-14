@@ -9,15 +9,16 @@ import { ReplayButton } from "./ReplayButton";
 import { BackgroundMusic } from "./BackgroundMusic";
 import { Countdown } from "./Countdown";
 import { weddingData } from "@/data/wedding";
+import { asset } from "@/lib/assets";
 
 const TEXTURES = [
-  "/textures/envelope-closed.png",
-  "/textures/wax-seal.png",
-  "/textures/envelope-botanical.png",
-  "/textures/paper.png",
-  "/textures/burgundy.png",
-  "/textures/monogram.png",
-  "/textures/grain.png",
+  asset("/textures/envelope-closed.png"),
+  asset("/textures/wax-seal.png"),
+  asset("/textures/envelope-botanical.png"),
+  asset("/textures/paper.png"),
+  asset("/textures/burgundy.png"),
+  asset("/textures/monogram.png"),
+  asset("/textures/grain.png"),
 ];
 
 const LUXE_EASE = "power2.inOut";
@@ -65,6 +66,8 @@ export function InvitationExperience() {
   const rootRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const [phase, setPhase] = useState<"sealed" | "unsealed" | "playing" | "ended">("sealed");
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
   const texturesReady = useTexturesReady(TEXTURES);
 
   useLayoutEffect(() => {
@@ -80,15 +83,7 @@ export function InvitationExperience() {
         paused: true,
         defaults: { ease: LUXE_EASE, immediateRender: false },
         onComplete: () => {
-          const stamp = root.querySelector('[data-stamp="seal"]');
-          if (stamp) {
-            gsap.set(stamp, {
-              y: 0,
-              rotation: 0,
-              scale: 1,
-              opacity: 1,
-            });
-          }
+          phaseRef.current = "ended";
           setPhase("ended");
         },
       });
@@ -112,9 +107,6 @@ export function InvitationExperience() {
     const replay = q("[data-layer='replay']");
     const grain = q(".grain");
     const cover = q('[data-cover="closed"]');
-    const stamp = q('[data-stamp="seal"]');
-
-    gsap.set(stamp, { xPercent: -50, yPercent: -50, y: 0, rotation: 0, scale: 1, opacity: 1 });
 
     timeline.set(q(".scene"), { opacity: 0, visibility: "hidden", filter: "none" }, 0);
     timeline.set(
@@ -331,62 +323,59 @@ export function InvitationExperience() {
     };
   }, []);
 
-  const dropSeal = () => {
-    const root = rootRef.current;
-    if (!root || phase !== "sealed") return;
-
-    const stamp = root.querySelector('[data-stamp="seal"]');
-    setPhase("unsealed");
-
+  useLayoutEffect(() => {
+    if (phase !== "unsealed") return;
+    const stamp = rootRef.current?.querySelector<HTMLElement>('[data-stamp="seal"]');
     if (!stamp) return;
 
-    gsap.killTweensOf(stamp);
-    gsap.set(stamp, { xPercent: -50, yPercent: -50, y: 0, rotation: 0, scale: 1, opacity: 1 });
-    gsap
-      .timeline()
-      .to(stamp, { scale: 0.96, duration: 0.12, ease: "power1.out" })
-      .to(stamp, { y: 10, duration: 0.1, ease: "power1.in" })
-      .to(stamp, {
-        y: "78vh",
-        rotation: 21,
-        duration: 0.95,
-        ease: "power3.in",
-      })
-      .to(stamp, { opacity: 0, duration: 0.2 }, "-=0.18");
+    const fall = Math.round((rootRef.current?.querySelector(".stage")?.getBoundingClientRect().height ?? 720) * 1.15);
+    const animation = stamp.animate(
+      [
+        { transform: "translate(-50%, -50%) rotate(0deg) scale(1)", opacity: 1, offset: 0 },
+        { transform: "translate(-50%, -50%) rotate(-4deg) scale(0.94)", opacity: 1, offset: 0.1 },
+        { transform: "translate(-50%, calc(-50% + 18px)) rotate(8deg) scale(1)", opacity: 1, offset: 0.18 },
+        { transform: `translate(-50%, ${fall}px) rotate(26deg) scale(1)`, opacity: 0, offset: 1 },
+      ],
+      {
+        duration: 1100,
+        easing: "cubic-bezier(0.55, 0.06, 0.85, 0.19)",
+        fill: "forwards",
+      },
+    );
+
+    return () => {
+      animation.cancel();
+    };
+  }, [phase]);
+
+  const dropSeal = () => {
+    if (phaseRef.current !== "sealed") return;
+    phaseRef.current = "unsealed";
+    setPhase("unsealed");
   };
 
   const begin = () => {
     const timeline = timelineRef.current;
-    if (!timeline || phase !== "unsealed") return;
+    if (!timeline || phaseRef.current !== "unsealed") return;
+    phaseRef.current = "playing";
     setPhase("playing");
     timeline.play(0);
   };
 
   const replay = () => {
     const timeline = timelineRef.current;
-    const root = rootRef.current;
-    if (!timeline || phase === "playing") return;
-
-    const stamp = root?.querySelector('[data-stamp="seal"]');
-    gsap.killTweensOf(stamp);
-    gsap.set(stamp, {
-      xPercent: -50,
-      yPercent: -50,
-      y: 0,
-      rotation: 0,
-      scale: 1,
-      opacity: 1,
-    });
+    if (!timeline || phaseRef.current === "playing") return;
     timeline.pause(0);
+    phaseRef.current = "sealed";
     setPhase("sealed");
   };
 
   const onStageClick = () => {
-    if (phase === "sealed") {
+    if (phaseRef.current === "sealed") {
       dropSeal();
       return;
     }
-    if (phase === "unsealed") {
+    if (phaseRef.current === "unsealed") {
       begin();
     }
   };
@@ -421,9 +410,16 @@ export function InvitationExperience() {
           <InvitationPaper />
           <MonogramScreen />
           <Envelope />
+          <div className="wax-seal" data-stamp="seal" aria-hidden="true">
+            <img src={asset("/textures/wax-seal.png")} alt="" draggable={false} />
+          </div>
           <div className="grain" />
           <p className="open-hint">
-            {phase === "unsealed" ? "Tap to open" : "Tap to break the seal"}
+            {phase === "sealed"
+              ? "Tap to break the seal"
+              : phase === "unsealed"
+                ? "Tap to open"
+                : ""}
           </p>
           <div className="end-sheet">
             <Countdown />

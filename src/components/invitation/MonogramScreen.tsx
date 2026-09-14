@@ -1,4 +1,5 @@
 import { getInitials, weddingData } from "@/data/wedding";
+import { asset } from "@/lib/assets";
 
 export function MonogramScreen() {
   const initials = getInitials(weddingData);
@@ -9,7 +10,7 @@ export function MonogramScreen() {
       <div className="monogram-mark">
         <img
           className="monogram-frame"
-          src="/textures/monogram.png"
+          src={asset("/textures/monogram.png")}
           alt=""
           draggable={false}
         />

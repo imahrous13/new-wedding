@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Great_Vibes, Italianno } from "next/font/google";
 import { weddingData } from "@/data/wedding";
+import { asset } from "@/lib/assets";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -48,7 +49,13 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${cormorant.variable} ${greatVibes.variable} ${italianno.variable}`}
-      style={{ background: "#5B0F22" }}
+      style={{
+        background: "#5B0F22",
+        ["--tex-paper" as string]: `url("${asset("/textures/paper.png")}")`,
+        ["--tex-envelope" as string]: `url("${asset("/textures/envelope-closed.png")}")`,
+        ["--tex-burgundy" as string]: `url("${asset("/textures/burgundy.png")}")`,
+        ["--tex-grain" as string]: `url("${asset("/textures/grain.png")}")`,
+      }}
     >
       <body style={{ background: "#5B0F22", margin: 0 }}>{children}</body>
     </html>

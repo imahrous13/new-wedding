@@ -1,3 +1,5 @@
+import { asset } from "@/lib/assets";
+
 export function Envelope() {
   return (
     <div className="envelope" data-layer="envelope">
@@ -22,14 +24,7 @@ export function Envelope() {
       <img
         className="envelope-cover"
         data-cover="closed"
-        src="/textures/envelope-closed.png"
-        alt=""
-        draggable={false}
-      />
-      <img
-        className="wax-seal"
-        data-stamp="seal"
-        src="/textures/wax-seal.png"
+        src={asset("/textures/envelope-closed.png")}
         alt=""
         draggable={false}
       />

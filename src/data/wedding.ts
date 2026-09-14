@@ -16,7 +16,7 @@ export const weddingData = {
     title: "أنا لك على طول",
     artist: "عبد الحليم حافظ",
     youtubeId: "pSr0NwkmpMY",
-    startSeconds: 58,
+    startSeconds: 52,
   },
 } as const;
 
