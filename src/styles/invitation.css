@@ -310,7 +310,22 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: -10cqh;
+  margin-top: 0;
+}
+
+.scene-date {
+  padding: 0 8cqw;
+}
+
+.save-date-content {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-50%);
 }
 
 .script-save {
@@ -322,25 +337,57 @@ body {
   margin: -1.2cqh 0 -0.6cqh;
 }
 
-.date-line {
-  margin-top: 3.2cqh;
-  font-size: 6.4cqw;
-  letter-spacing: 0.28em;
-  font-weight: 700;
+.save-calendar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 5cqh;
   color: #6a2a38;
-  margin-right: -0.28em;
+  line-height: 1;
+}
+
+.save-calendar .ch {
+  display: inline-block;
+}
+
+.save-month {
+  font-size: clamp(16px, 5cqw, 22px);
+  letter-spacing: 0.38em;
+  margin-right: -0.38em;
+  font-weight: 600;
+}
+
+.save-day {
+  margin-top: 1.2cqh;
+  font-size: clamp(56px, 18cqw, 80px);
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+.save-year {
+  margin-top: 0.8cqh;
+  font-size: clamp(16px, 4.5cqw, 22px);
+  letter-spacing: 0.42em;
+  margin-right: -0.42em;
+  font-weight: 600;
+}
+
+.save-star {
+  margin-top: 1.4cqh;
+  font-size: clamp(10px, 2.6cqw, 13px);
+  color: #8c5d5e;
 }
 
 .event-time {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2cqh;
-  margin-top: 1.4cqh;
+  gap: 0.9cqh;
+  margin-top: 5cqh;
   font-family: var(--serif);
-  font-size: 5.8cqw;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: clamp(16px, 4.8cqw, 22px);
+  font-weight: 600;
+  letter-spacing: 0.22em;
   line-height: 1.1;
   color: var(--text-burgundy);
 }
@@ -523,17 +570,14 @@ body {
 
 .end-sheet {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 54%;
-  bottom: 12%;
+  inset: 0;
   z-index: 9;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 0.35cqh;
-  padding: 2.4cqh 4.5% 0;
+  min-width: 0;
+  overflow: hidden;
+  padding: max(6cqh, 28px) 6cqw max(11cqh, 74px);
   opacity: 0;
   pointer-events: none;
 }
@@ -543,32 +587,58 @@ body {
 }
 
 .end-sheet .countdown {
-  gap: 4.8cqw;
+  flex: 0 0 auto;
+  width: min(78cqw, 420px);
+  max-width: 100%;
+  gap: clamp(18px, 5cqw, 30px);
 }
 
 .end-sheet .count-unit {
-  min-width: 12cqw;
+  min-width: 0;
+  flex: 1 1 0;
 }
 
 .end-sheet .count-value {
-  font-size: 8.6cqw;
-  font-weight: 400;
+  font-size: clamp(28px, 7cqw, 42px);
+  font-weight: 500;
   letter-spacing: 0.06em;
   color: #ead9c6;
 }
 
 .end-sheet .count-label {
   margin-top: 1cqh;
-  font-size: 2.55cqw;
-  letter-spacing: 0.34em;
+  font-size: clamp(8px, 2.2cqw, 11px);
+  letter-spacing: 0.28em;
   color: rgba(234, 217, 198, 0.68);
   margin-right: -0.34em;
 }
 
+.end-crest-wrap {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: clamp(150px, 40cqw, 210px);
+  margin-top: clamp(20px, 5cqh, 42px);
+}
+
+.end-crest-wrap .monogram-crest {
+  width: 100%;
+  max-width: none;
+}
+
+.end-details {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
+  margin-top: clamp(18px, 3cqh, 26px);
+  text-align: center;
+}
+
+.end-date,
+.end-time,
 .end-venue,
 .end-address {
   font-family: var(--serif);
-  font-size: 3.35cqw;
   letter-spacing: 0.38em;
   text-transform: uppercase;
   color: #ead9c6;
@@ -576,27 +646,80 @@ body {
   margin-right: -0.38em;
 }
 
+.end-date {
+  max-width: 100%;
+  font-size: clamp(18px, 5cqw, 28px);
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  margin-right: -0.3em;
+  white-space: nowrap;
+}
+
+.end-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: clamp(14px, 4cqw, 20px);
+  font-size: clamp(13px, 3.3cqw, 17px);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1.5;
+  margin-right: -0.14em;
+  color: rgba(234, 217, 198, 0.82);
+  white-space: nowrap;
+  max-width: 100%;
+  text-wrap: balance;
+}
+
+.end-time-separator {
+  display: none;
+}
+
+.end-time > span:not(.end-time-separator) {
+  white-space: nowrap;
+}
+
+.end-location {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
+  width: min(80cqw, 420px);
+  margin-top: clamp(24px, 5cqh, 40px);
+  text-align: center;
+}
+
+.end-venue,
+.end-address {
+  font-size: clamp(13px, 3cqw, 17px);
+}
+
 .end-venue {
-  margin-top: 3.4cqh;
+  margin-top: 0;
 }
 
 .end-address {
-  margin-top: 1.15cqh;
-  font-size: 3.15cqw;
-  letter-spacing: 0.12em;
-  margin-right: -0.12em;
-  max-width: 100%;
+  width: 100%;
+  margin-top: 8px;
+  font-size: clamp(12px, 2.7cqw, 16px);
+  letter-spacing: 0.16em;
+  margin-right: -0.16em;
+  max-width: 80cqw;
   line-height: 1.45;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .end-map {
   pointer-events: auto;
   gap: 0.45em;
-  font-size: 3.8cqw;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: clamp(13px, 3cqw, 17px);
   letter-spacing: 0.36em;
   color: #ead9c6;
-  margin-top: 2.6cqh;
+  margin-top: 14px;
   margin-right: -0.36em;
   opacity: 1;
 }
@@ -691,6 +814,16 @@ body {
 }
 
 .invitation.ended .monogram {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.invitation.ended .monogram-crest {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.invitation.ended .monogram-crest {
   opacity: 1 !important;
   visibility: visible !important;
 }
@@ -865,7 +998,7 @@ body {
 .replay {
   position: absolute;
   left: 50%;
-  bottom: 4.5%;
+  bottom: max(18px, calc(env(safe-area-inset-bottom, 0px) + 12px));
   top: auto;
   z-index: 10;
   width: 11cqw;
@@ -892,6 +1025,48 @@ body {
 
 .replay:hover {
   background: rgba(63, 7, 21, 0.42);
+}
+
+@container invite (max-height: 700px) {
+  .end-crest-wrap {
+    width: clamp(140px, 37cqw, 195px);
+    margin-top: 20px;
+  }
+
+  .end-location {
+    margin-top: 24px;
+  }
+
+  .end-map {
+    margin-top: 8px;
+  }
+}
+
+@container invite (max-height: 600px) {
+  .end-sheet {
+    padding-top: 24px;
+  }
+
+  .end-crest-wrap {
+    width: clamp(120px, 34cqw, 175px);
+    margin-top: 12px;
+  }
+
+  .end-details {
+    margin-top: clamp(18px, 4cqh, 28px);
+  }
+
+  .end-time {
+    margin-top: 8px;
+  }
+
+  .end-location {
+    margin-top: 30px;
+  }
+
+  .end-map {
+    margin-top: 12px;
+  }
 }
 
 .invitation.playing .open-hint {

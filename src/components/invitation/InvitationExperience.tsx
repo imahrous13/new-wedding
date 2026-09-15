@@ -528,9 +528,28 @@ export function InvitationExperience() {
           </p>
           <div className="end-sheet">
             <Countdown />
-            <p className="end-venue">{weddingData.venue}</p>
-            <p className="end-address">{weddingData.address}</p>
-            <MapLink className="end-map" />
+            <div className="end-crest-wrap" aria-hidden="true">
+              <img
+                className="monogram-crest"
+                data-crest="ra"
+                src={asset("/textures/ra-crest.png")}
+                alt=""
+                draggable={false}
+              />
+            </div>
+            <div className="end-details">
+              <p className="end-date">{weddingData.date}</p>
+              <p className="end-time">
+                <span>{weddingData.time.starts}</span>
+                <span className="end-time-separator" aria-hidden="true">•</span>
+                <span>{weddingData.time.ends}</span>
+              </p>
+            </div>
+            <div className="end-location">
+              <p className="end-venue">{weddingData.venue}</p>
+              <p className="end-address">{weddingData.address}</p>
+              <MapLink className="end-map" />
+            </div>
           </div>
           <ReplayButton onReplay={replay} />
           <BackgroundMusic active={phase !== "sealed"} />

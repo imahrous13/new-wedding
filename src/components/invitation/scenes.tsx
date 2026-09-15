@@ -3,7 +3,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { getVenueLines, weddingData } from "@/data/wedding";
 import { CharText } from "./CharText";
-import { Countdown } from "./Countdown";
 import { MapLink } from "./MapLink";
 
 export function IntroMessage() {
@@ -70,28 +69,26 @@ export function CoupleNames() {
 }
 
 export function SaveTheDate() {
-  const { hotel, city } = getVenueLines();
+  const [month, day, year] = weddingData.date.replace(",", "").split(" ");
 
   return (
     <div className="scene scene-date" data-scene="date">
-      <div className="save-stack">
-        <CharText className="script-save" part="save" text="Save" connected />
-        <CharText className="script-the" part="the" text="the" connected />
-        <CharText className="script-save" part="date-word" text="Date" connected />
-      </div>
-      <CharText className="date-line" part="date" text={weddingData.date.toUpperCase()} />
-      <div className="event-time" data-part="time" aria-label={`${weddingData.time.starts} / ${weddingData.time.ends}`}>
-        <span>{weddingData.time.starts}</span>
-        <span>{weddingData.time.ends}</span>
-      </div>
-      <div className="countdown-wrap" data-part="countdown">
-        <Countdown />
-      </div>
-      <div className="venue-block">
-        <CharText className="venue-line" part="venue" text={weddingData.venue.toUpperCase()} />
-        <CharText className="venue-line" part="address" text={hotel.toUpperCase()} />
-        {city ? <CharText className="venue-line" part="city" text={city.toUpperCase()} /> : null}
-        <MapLink part="map" />
+      <div className="save-date-content">
+        <div className="save-stack">
+          <CharText className="script-save" part="save" text="Save" connected />
+          <CharText className="script-the" part="the" text="the" connected />
+          <CharText className="script-save" part="date-word" text="Date" connected />
+        </div>
+        <div className="save-calendar" data-part="date" aria-label={weddingData.date}>
+          <CharText className="save-month" text={month.toUpperCase()} />
+          <CharText className="save-day" text={day} />
+          <CharText className="save-year" text={year} />
+          <span className="save-star" aria-hidden="true">✦</span>
+        </div>
+        <div className="event-time" data-part="time" aria-label={`${weddingData.time.starts} / ${weddingData.time.ends}`}>
+          <span>{weddingData.time.starts}</span>
+          <span>{weddingData.time.ends}</span>
+        </div>
       </div>
     </div>
   );

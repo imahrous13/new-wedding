@@ -2,7 +2,7 @@ export const weddingData = {
   bride: "Rim",
   groom: "Abdelrahman",
   date: "October 22, 2026",
-  dateISO: "2026-10-22T00:00:00+03:00",
+  dateISO: "2026-10-22T16:00:00+03:00",
   time: {
     starts: "Starts at 4:00 PM",
     ends: "Ends at 7:00 PM",
