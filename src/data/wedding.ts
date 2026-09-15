@@ -3,7 +3,10 @@ export const weddingData = {
   groom: "Abdelrahman",
   date: "October 22, 2026",
   dateISO: "2026-10-22T00:00:00+03:00",
-  time: "",
+  time: {
+    starts: "Starts at 4:00 PM",
+    ends: "Ends at 7:00 PM",
+  },
   venue: "Madar Venue",
   address: "Tolip Gardens Hotel, Nasr City",
   mapsUrl: "https://maps.app.goo.gl/PtSq6tPKaHNRY62D7?g_st=ic",

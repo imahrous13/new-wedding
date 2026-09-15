@@ -4,13 +4,26 @@ import { useEffect, useRef, useState } from "react";
 import { weddingData } from "@/data/wedding";
 
 type YTPlayer = {
-  mute: () => void;
-  unMute: () => void;
-  isMuted: () => boolean;
-  playVideo: () => void;
-  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
-  destroy: () => void;
+  mute?: () => void;
+  unMute?: () => void;
+  playVideo?: () => void;
+  pauseVideo?: () => void;
+  seekTo?: (seconds: number, allowSeekAhead: boolean) => void;
+  destroy?: () => void;
 };
+
+type ReadyPlayer = Required<YTPlayer>;
+
+function isReadyPlayer(player: YTPlayer | null): player is ReadyPlayer {
+  return Boolean(
+    player &&
+      typeof player.mute === "function" &&
+      typeof player.unMute === "function" &&
+      typeof player.playVideo === "function" &&
+      typeof player.pauseVideo === "function" &&
+      typeof player.seekTo === "function",
+  );
+}
 
 declare global {
   interface Window {
@@ -45,14 +58,51 @@ function loadYouTubeApi() {
 
 export function BackgroundMusic({ active }: { active: boolean }) {
   const playerRef = useRef<YTPlayer | null>(null);
-  const startedRef = useRef(false);
+  const activeRef = useRef(active);
+  const userMutedRef = useRef(false);
+  const pendingGestureRef = useRef(false);
+  const resumeTimeoutRef = useRef<number | null>(null);
   const [muted, setMuted] = useState(false);
 
   useEffect(() => {
-    if (!active || startedRef.current) return;
-    startedRef.current = true;
+    activeRef.current = active;
+    if (!isReadyPlayer(playerRef.current)) return;
 
+    if (!active) {
+      playerRef.current.pauseVideo();
+    } else if (!userMutedRef.current) {
+      playerRef.current.unMute();
+      playerRef.current.playVideo();
+    }
+  }, [active]);
+
+  useEffect(() => {
     let cancelled = false;
+
+    const startFromUserGesture = () => {
+      pendingGestureRef.current = true;
+      const player = playerRef.current;
+      if (!isReadyPlayer(player) || !activeRef.current || userMutedRef.current) return;
+      player.unMute();
+      player.playVideo();
+      setMuted(false);
+    };
+
+    const onVisibilityChange = () => {
+      const player = playerRef.current;
+      if (!isReadyPlayer(player) || !activeRef.current) return;
+
+      if (document.visibilityState === "hidden") {
+        player.pauseVideo();
+      } else if (!userMutedRef.current) {
+        player.unMute();
+        player.playVideo();
+      }
+    };
+
+    window.addEventListener("pointerdown", startFromUserGesture, { passive: true });
+    window.addEventListener("touchstart", startFromUserGesture, { passive: true });
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     loadYouTubeApi().then(() => {
       if (cancelled || !window.YT?.Player) return;
@@ -71,8 +121,35 @@ export function BackgroundMusic({ active }: { active: boolean }) {
         },
         events: {
           onReady: (event: { target: YTPlayer }) => {
+            playerRef.current = event.target;
+            if (!isReadyPlayer(event.target)) return;
+            event.target.mute();
             event.target.seekTo(weddingData.song.startSeconds, true);
-            event.target.playVideo();
+            if (activeRef.current && pendingGestureRef.current && !userMutedRef.current) {
+              event.target.unMute();
+              event.target.playVideo();
+              setMuted(false);
+            }
+          },
+          onStateChange: (event: { target: YTPlayer; data: number }) => {
+            if (!isReadyPlayer(event.target) || !activeRef.current || userMutedRef.current) return;
+            const readyPlayer = event.target;
+
+            const shouldResume =
+              document.visibilityState === "visible" &&
+              pendingGestureRef.current &&
+              (event.data === 0 || event.data === 2);
+            if (!shouldResume) return;
+
+            if (resumeTimeoutRef.current !== null) {
+              window.clearTimeout(resumeTimeoutRef.current);
+            }
+            resumeTimeoutRef.current = window.setTimeout(() => {
+              resumeTimeoutRef.current = null;
+              if (!activeRef.current || userMutedRef.current || document.visibilityState !== "visible") return;
+              if (event.data === 0) readyPlayer.seekTo(weddingData.song.startSeconds, true);
+              readyPlayer.playVideo();
+            }, 180);
           },
         },
       });
@@ -80,24 +157,43 @@ export function BackgroundMusic({ active }: { active: boolean }) {
 
     return () => {
       cancelled = true;
+      if (resumeTimeoutRef.current !== null) {
+        window.clearTimeout(resumeTimeoutRef.current);
+        resumeTimeoutRef.current = null;
+      }
+      window.removeEventListener("pointerdown", startFromUserGesture);
+      window.removeEventListener("touchstart", startFromUserGesture);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [active]);
+  }, []);
 
   useEffect(() => {
     return () => {
-      playerRef.current?.destroy();
+      if (resumeTimeoutRef.current !== null) {
+        window.clearTimeout(resumeTimeoutRef.current);
+      }
+      playerRef.current?.destroy?.();
       playerRef.current = null;
     };
   }, []);
 
   const toggleMute = () => {
     const player = playerRef.current;
-    if (!player) return;
+    pendingGestureRef.current = true;
+    if (!isReadyPlayer(player)) {
+      const nextMuted = !userMutedRef.current;
+      userMutedRef.current = nextMuted;
+      setMuted(nextMuted);
+      return;
+    }
 
-    if (player.isMuted()) {
+    if (userMutedRef.current) {
+      userMutedRef.current = false;
       player.unMute();
+      player.playVideo();
       setMuted(false);
     } else {
+      userMutedRef.current = true;
       player.mute();
       setMuted(true);
     }

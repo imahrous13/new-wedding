@@ -80,6 +80,10 @@ export function SaveTheDate() {
         <CharText className="script-save" part="date-word" text="Date" connected />
       </div>
       <CharText className="date-line" part="date" text={weddingData.date.toUpperCase()} />
+      <div className="event-time" data-part="time" aria-label={`${weddingData.time.starts} / ${weddingData.time.ends}`}>
+        <span>{weddingData.time.starts}</span>
+        <span>{weddingData.time.ends}</span>
+      </div>
       <div className="countdown-wrap" data-part="countdown">
         <Countdown />
       </div>
