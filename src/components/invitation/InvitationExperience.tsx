@@ -10,19 +10,38 @@ import { BackgroundMusic } from "./BackgroundMusic";
 import { Countdown } from "./Countdown";
 import { weddingData } from "@/data/wedding";
 import { asset } from "@/lib/assets";
+import { MapLink } from "./MapLink";
 
 const TEXTURES = [
   asset("/textures/envelope-closed.png"),
   asset("/textures/wax-seal.png"),
   asset("/textures/envelope-botanical.png"),
+  asset("/textures/end-botanical.png"),
   asset("/textures/paper.png"),
+  asset("/textures/paper-plain.png"),
+  asset("/textures/pampas-a.png"),
+  asset("/textures/pampas-b.png"),
+  asset("/textures/pampas-c.png"),
+  asset("/textures/pampas-d.png"),
+  asset("/textures/pampas-e.png"),
+  asset("/textures/pampas-full.png"),
   asset("/textures/burgundy.png"),
-  asset("/textures/monogram.png"),
+  asset("/textures/ra-crest.png"),
   asset("/textures/grain.png"),
 ];
 
 const LUXE_EASE = "power2.inOut";
 const TEXT_EASE = "power2.out";
+
+function resetStamp(root: HTMLElement | null) {
+  const stamp = root?.querySelector<HTMLElement>('[data-stamp="seal"]');
+  if (!stamp) return;
+
+  stamp.getAnimations().forEach((animation) => animation.cancel());
+  stamp.style.removeProperty("transform");
+  stamp.style.removeProperty("opacity");
+  stamp.style.removeProperty("visibility");
+}
 
 function prefersReducedMotion() {
   if (typeof window === "undefined") return false;
@@ -68,6 +87,10 @@ export function InvitationExperience() {
   const [phase, setPhase] = useState<"sealed" | "unsealed" | "playing" | "ended">("sealed");
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
+  const openTimeoutRef = useRef<number | null>(null);
+  const speedRef = useRef(1);
+  const holdingRef = useRef(false);
+  const restoreTimeoutRef = useRef<number | null>(null);
   const texturesReady = useTexturesReady(TEXTURES);
 
   useLayoutEffect(() => {
@@ -83,6 +106,10 @@ export function InvitationExperience() {
         paused: true,
         defaults: { ease: LUXE_EASE, immediateRender: false },
         onComplete: () => {
+          holdingRef.current = false;
+          speedRef.current = 1;
+          timeline.timeScale(1);
+          root.setAttribute("data-speed", "1");
           phaseRef.current = "ended";
           setPhase("ended");
         },
@@ -102,11 +129,11 @@ export function InvitationExperience() {
     const envelope = q('[data-layer="envelope"]');
     const paper = q('[data-layer="paper"]');
     const monogram = q('[data-layer="monogram"]');
-    const mark = q(".monogram-mark");
-    const initials = q(".monogram-initials");
+    const crest = q("[data-crest='ra']");
     const replay = q("[data-layer='replay']");
     const grain = q(".grain");
     const cover = q('[data-cover="closed"]');
+    const endSheet = q(".end-sheet");
 
     timeline.set(q(".scene"), { opacity: 0, visibility: "hidden", filter: "none" }, 0);
     timeline.set(
@@ -114,16 +141,22 @@ export function InvitationExperience() {
       { opacity: 0, y: 8, filter: "blur(5px)" },
       0,
     );
-    timeline.set(q(".countdown-wrap, .map-link"), {
+    timeline.set(q(".countdown-wrap, .scene .map-link"), {
       opacity: 0,
       y: 8,
       filter: "blur(5px)",
     }, 0);
     timeline.set(monogram, { opacity: 0, visibility: "hidden" }, 0);
-    timeline.set(mark, { opacity: 0, scale: 0.96 }, 0);
-    timeline.set(initials, { opacity: 0 }, 0);
-    timeline.set(replay, { opacity: 0, scale: 0.92, pointerEvents: "none" }, 0);
+    timeline.set(crest, { opacity: 0, scale: 0.96 }, 0);
+    timeline.set(replay, { opacity: 0, scale: 0.92, xPercent: -50, pointerEvents: "none" }, 0);
+    timeline.set(endSheet, { opacity: 0 }, 0);
     timeline.set(paper, { opacity: 1 }, 0);
+    timeline.set(
+      q("[data-stem]"),
+      { opacity: 0, scaleX: 0.22, scaleY: 0.05, filter: "contrast(0.82) brightness(1.04)" },
+      0,
+    );
+    timeline.set(q('[data-stem="full"]'), { scaleX: 1, scaleY: 1, filter: "none" }, 0);
     timeline.set(envelope, { opacity: 1, visibility: "visible" }, 0);
     timeline.set(cover, { opacity: 1, visibility: "visible" }, 0);
     timeline.set(grain, { opacity: 0.07 }, 0);
@@ -155,20 +188,22 @@ export function InvitationExperience() {
       addScene(timeline, q, "date", 9.0, 13.2);
       addScene(timeline, q, "rsvp", 13.6, 17.6);
 
+      timeline.set(q("[data-stem]"), {
+        opacity: 1,
+        scaleX: 1,
+        scaleY: 1,
+        filter: "contrast(1) brightness(1)",
+      }, 1.0);
+
       timeline.to(paper, { opacity: 0, duration: 0.8, ease: TEXT_EASE }, 17.8);
       timeline.set(monogram, { visibility: "visible" }, 18.0);
       timeline.to(monogram, { opacity: 1, duration: 0.8, ease: TEXT_EASE }, 18.0);
-      timeline.to(mark, { opacity: 1, scale: 1, duration: 1.0, ease: TEXT_EASE }, 18.2);
-      timeline.to(initials, { opacity: 1, duration: 0.8, ease: TEXT_EASE }, 18.8);
-      timeline.to(monogram, { opacity: 0, duration: 0.7, ease: TEXT_EASE }, 24.0);
-      timeline.set(envelope, { visibility: "visible" }, 24.4);
-      timeline.set(cover, { visibility: "visible" }, 24.4);
-      timeline.to(envelope, { opacity: 1, duration: 0.8, ease: TEXT_EASE }, 24.4);
-      timeline.to(cover, { opacity: 1, duration: 0.6, ease: TEXT_EASE }, 24.5);
+      timeline.to(crest, { opacity: 1, scale: 1, duration: 1.0, ease: TEXT_EASE }, 18.15);
+      timeline.to(endSheet, { opacity: 1, duration: 0.8, ease: TEXT_EASE }, 18.25);
       timeline.to(
         replay,
-        { opacity: 1, scale: 1, pointerEvents: "auto", duration: 0.5, ease: TEXT_EASE },
-        25.0,
+        { opacity: 1, scale: 1, xPercent: -50, pointerEvents: "auto", duration: 0.5, ease: TEXT_EASE },
+        18.7,
       );
     } else {
       timeline.to(cover, { opacity: 0, duration: 0.28, ease: "power2.out" }, 0.08);
@@ -235,6 +270,8 @@ export function InvitationExperience() {
         ],
       });
 
+      growStems(timeline, q);
+
       addCinematicScene(timeline, q, "names", {
         start: 7.0,
         fadeOut: 12.15,
@@ -253,7 +290,7 @@ export function InvitationExperience() {
         hidden: 18.85,
         groups: [
           { selector: '[data-part="date"] .ch', at: 13.05, stagger: 0.035 },
-          { selector: '[data-part="venue"] .ch, [data-part="address"] .ch', at: 13.2, stagger: 0.018 },
+          { selector: '[data-part="venue"] .ch, [data-part="address"] .ch, [data-part="city"] .ch', at: 13.2, stagger: 0.018 },
           { selector: '[data-part="save"] .ch', at: 13.45, stagger: 0.09 },
           { selector: '[data-part="the"] .ch', at: 13.85, stagger: 0.08 },
           { selector: '[data-part="date-word"] .ch', at: 14.15, stagger: 0.09 },
@@ -267,7 +304,7 @@ export function InvitationExperience() {
         hidden: 25.15,
         groups: [
           { selector: '[data-part="rsvp"] .ch', at: 19.05, stagger: 0.1 },
-          { selector: '[data-part="deadline"] .ch, [data-part="rsvp-name"] .ch, [data-part="call"] .ch', at: 19.7, stagger: 0.02 },
+          { selector: '[data-part="deadline"] .ch, [data-part="rsvp-name"] .ch, [data-part="call"] .ch, [data-part="city"] .ch', at: 19.7, stagger: 0.02 },
           { selector: ".scene-rsvp .map-link", at: 20.2, stagger: 0.03 },
           { selector: '[data-part="kindly"] .ch', at: 20.55, stagger: 0.07 },
         ],
@@ -278,40 +315,15 @@ export function InvitationExperience() {
       timeline.to(monogram, { opacity: 1, duration: 1.05, ease: "power2.inOut" }, 25.2);
       timeline.to(grain, { opacity: 0.045, duration: 0.8 }, 25.4);
       timeline.to(
-        mark,
-        { opacity: 1, scale: 1, duration: 1.2, ease: "power2.out" },
-        26.5,
+        crest,
+        { opacity: 1, scale: 1, duration: 1.25, ease: "power2.out" },
+        25.55,
       );
-      timeline.to(initials, { opacity: 1, duration: 1.1, ease: TEXT_EASE }, 27.35);
-      timeline.to(monogram, { opacity: 0, duration: 0.9, ease: "power2.inOut" }, 33.6);
-      timeline.set(
-        [left, right, top, bottom, leftShadow, rightShadow, topShadow, bottomShadow],
-        { xPercent: 0, yPercent: 0, rotateX: 0, rotateY: 0, opacity: 1 },
-        34.2,
-      );
-      timeline.set(leftShadow, { opacity: 0 }, 34.2);
-      timeline.set(rightShadow, { opacity: 0 }, 34.2);
-      timeline.set(topShadow, { opacity: 0 }, 34.2);
-      timeline.set(bottomShadow, { opacity: 0 }, 34.2);
-      timeline.set(envelope, { visibility: "visible" }, 34.2);
-      timeline.set(cover, { visibility: "visible" }, 34.2);
-      timeline.fromTo(
-        envelope,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.95, ease: "power2.inOut", immediateRender: false },
-        34.25,
-      );
-      timeline.fromTo(
-        cover,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.7, ease: "power2.inOut", immediateRender: false },
-        34.35,
-      );
-      timeline.to(grain, { opacity: 0.07, duration: 0.6 }, 34.3);
+      timeline.to(endSheet, { opacity: 1, duration: 1.1, ease: "power2.out" }, 25.85);
       timeline.to(
         replay,
-        { opacity: 1, scale: 1, pointerEvents: "auto", duration: 0.55, ease: TEXT_EASE },
-        35.0,
+        { opacity: 1, scale: 1, xPercent: -50, pointerEvents: "auto", duration: 0.55, ease: TEXT_EASE },
+        26.55,
       );
     }
 
@@ -329,6 +341,7 @@ export function InvitationExperience() {
     if (!stamp) return;
 
     const fall = Math.round((rootRef.current?.querySelector(".stage")?.getBoundingClientRect().height ?? 720) * 1.15);
+    const dropMs = 980;
     const animation = stamp.animate(
       [
         { transform: "translate(-50%, -50%) rotate(0deg) scale(1)", opacity: 1, offset: 0 },
@@ -337,47 +350,135 @@ export function InvitationExperience() {
         { transform: `translate(-50%, ${fall}px) rotate(26deg) scale(1)`, opacity: 0, offset: 1 },
       ],
       {
-        duration: 1100,
+        duration: dropMs,
         easing: "cubic-bezier(0.55, 0.06, 0.85, 0.19)",
         fill: "forwards",
       },
     );
 
+    openTimeoutRef.current = window.setTimeout(() => {
+      openTimeoutRef.current = null;
+      const timeline = timelineRef.current;
+      if (!timeline || phaseRef.current !== "unsealed") return;
+      phaseRef.current = "playing";
+      speedRef.current = 1;
+      setPhase("playing");
+      timeline.timeScale(1);
+      rootRef.current?.setAttribute("data-speed", "1");
+      timeline.play(0);
+      if (holdingRef.current) {
+        speedRef.current = 2.55;
+        timeline.timeScale(2.55);
+        rootRef.current?.setAttribute("data-speed", "2.55");
+      }
+    }, dropMs + 220);
+
     return () => {
-      animation.cancel();
+      if (openTimeoutRef.current !== null) {
+        window.clearTimeout(openTimeoutRef.current);
+        openTimeoutRef.current = null;
+      }
+      if (phaseRef.current !== "playing") animation.cancel();
     };
   }, [phase]);
 
-  const dropSeal = () => {
+  useLayoutEffect(() => {
+    if (phase !== "sealed") return;
+    resetStamp(rootRef.current);
+  }, [phase]);
+
+  useEffect(() => {
+    return () => {
+      if (restoreTimeoutRef.current !== null) {
+        window.clearTimeout(restoreTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const begin = () => {
     if (phaseRef.current !== "sealed") return;
     phaseRef.current = "unsealed";
     setPhase("unsealed");
   };
 
-  const begin = () => {
-    const timeline = timelineRef.current;
-    if (!timeline || phaseRef.current !== "unsealed") return;
-    phaseRef.current = "playing";
-    setPhase("playing");
-    timeline.play(0);
-  };
-
   const replay = () => {
     const timeline = timelineRef.current;
     if (!timeline || phaseRef.current === "playing") return;
+    if (openTimeoutRef.current !== null) {
+      window.clearTimeout(openTimeoutRef.current);
+      openTimeoutRef.current = null;
+    }
     timeline.pause(0);
+    timeline.timeScale(1);
+    speedRef.current = 1;
+    rootRef.current?.setAttribute("data-speed", "1");
+    holdingRef.current = false;
+    if (restoreTimeoutRef.current !== null) {
+      window.clearTimeout(restoreTimeoutRef.current);
+      restoreTimeoutRef.current = null;
+    }
+    resetStamp(rootRef.current);
     phaseRef.current = "sealed";
     setPhase("sealed");
   };
 
-  const onStageClick = () => {
+  const skipSealDelay = () => {
+    const timeline = timelineRef.current;
+    if (phaseRef.current !== "unsealed" || !timeline) return;
+    if (openTimeoutRef.current !== null) {
+      window.clearTimeout(openTimeoutRef.current);
+      openTimeoutRef.current = null;
+    }
+    phaseRef.current = "playing";
+    speedRef.current = 1;
+    setPhase("playing");
+    timeline.timeScale(1);
+    timeline.play(0);
+    if (holdingRef.current) setPlaybackSpeed(2.55, true);
+  };
+
+  const setPlaybackSpeed = (value: number, instant = false) => {
+    const timeline = timelineRef.current;
+    if (!timeline || phaseRef.current !== "playing") return;
+    speedRef.current = value;
+    rootRef.current?.setAttribute("data-speed", String(value));
+    gsap.killTweensOf(timeline);
+    if (instant) {
+      timeline.timeScale(value);
+      return;
+    }
+    gsap.to(timeline, { timeScale: value, duration: 0.18, ease: "power2.out", overwrite: true });
+  };
+
+  const startFast = () => {
+    holdingRef.current = true;
+    if (restoreTimeoutRef.current !== null) {
+      window.clearTimeout(restoreTimeoutRef.current);
+      restoreTimeoutRef.current = null;
+    }
+    if (phaseRef.current === "playing") setPlaybackSpeed(2.55, true);
+  };
+
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest("a, button")) return;
+    startFast();
     if (phaseRef.current === "sealed") {
-      dropSeal();
+      begin();
       return;
     }
     if (phaseRef.current === "unsealed") {
-      begin();
+      skipSealDelay();
     }
+  };
+
+  const onPointerEnd = () => {
+    if (!holdingRef.current) return;
+    holdingRef.current = false;
+    restoreTimeoutRef.current = window.setTimeout(() => {
+      restoreTimeoutRef.current = null;
+      if (holdingRef.current) return;
+      setPlaybackSpeed(1);
+    }, 220);
   };
 
   return (
@@ -389,21 +490,29 @@ export function InvitationExperience() {
       <div className="stage-frame">
         <div
           className="stage"
-          onClick={phase === "sealed" || phase === "unsealed" ? onStageClick : undefined}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+          onPointerLeave={onPointerEnd}
           onKeyDown={(event) => {
-            if (phase !== "sealed" && phase !== "unsealed") return;
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              onStageClick();
-            }
+            if (phase === "ended") return;
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            if (event.repeat) return;
+            startFast();
+            if (phaseRef.current === "sealed") begin();
+            else if (phaseRef.current === "unsealed") skipSealDelay();
           }}
-          role={phase === "sealed" || phase === "unsealed" ? "button" : undefined}
-          tabIndex={phase === "sealed" || phase === "unsealed" ? 0 : -1}
+          onKeyUp={(event) => {
+            if (event.key === "Enter" || event.key === " ") onPointerEnd();
+          }}
+          role={phase === "ended" ? undefined : "button"}
+          tabIndex={phase === "ended" ? -1 : 0}
           aria-label={
             phase === "sealed"
-              ? "Break the wax seal"
-              : phase === "unsealed"
-                ? "Open wedding invitation"
+              ? "Open wedding invitation"
+              : phase === "playing"
+                ? "Hold to speed up invitation"
                 : undefined
           }
         >
@@ -415,31 +524,69 @@ export function InvitationExperience() {
           </div>
           <div className="grain" />
           <p className="open-hint">
-            {phase === "sealed"
-              ? "Tap to break the seal"
-              : phase === "unsealed"
-                ? "Tap to open"
-                : ""}
+            {phase === "sealed" ? "Tap to open" : ""}
           </p>
           <div className="end-sheet">
             <Countdown />
             <p className="end-venue">{weddingData.venue}</p>
             <p className="end-address">{weddingData.address}</p>
-            <a
-              className="end-map"
-              href={weddingData.mapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(event) => event.stopPropagation()}
-            >
-              View map
-            </a>
+            <MapLink className="end-map" />
           </div>
           <ReplayButton onReplay={replay} />
           <BackgroundMusic active={phase !== "sealed"} />
         </div>
       </div>
     </div>
+  );
+}
+
+function growStems(
+  timeline: gsap.core.Timeline,
+  q: ReturnType<typeof gsap.utils.selector>,
+) {
+  const stems = [
+    { id: "a", at: 5.48, origin: "7% 100%", duration: 3.1, scaleX: 0.18 },
+    { id: "b", at: 6.22, origin: "12% 100%", duration: 2.85, scaleX: 0.24 },
+    { id: "c", at: 6.95, origin: "18% 100%", duration: 2.65, scaleX: 0.32 },
+    { id: "d", at: 7.42, origin: "10% 100%", duration: 2.35, scaleX: 0.38 },
+    { id: "e", at: 7.92, origin: "23% 100%", duration: 2.5, scaleX: 0.28 },
+  ];
+
+  for (const stem of stems) {
+    const el = q(`[data-stem="${stem.id}"]`);
+    timeline.set(
+      el,
+      {
+        opacity: 0,
+        scaleX: stem.scaleX,
+        scaleY: 0.04,
+        transformOrigin: stem.origin,
+        filter: "contrast(0.8) brightness(1.05)",
+      },
+      0,
+    );
+    timeline.to(el, { opacity: 1, duration: 0.42, ease: "power1.out" }, stem.at);
+    timeline.to(
+      el,
+      { scaleY: 1, duration: stem.duration, ease: "power2.out" },
+      stem.at,
+    );
+    timeline.to(
+      el,
+      { scaleX: 1, duration: stem.duration * 0.82, ease: "power2.out" },
+      stem.at + 0.32,
+    );
+    timeline.to(
+      el,
+      { filter: "contrast(1) brightness(1)", duration: stem.duration * 0.7, ease: "power1.out" },
+      stem.at + 0.45,
+    );
+  }
+
+  timeline.to(
+    q('[data-stem="full"]'),
+    { opacity: 1, duration: 1.85, ease: "power1.inOut" },
+    8.7,
   );
 }
 

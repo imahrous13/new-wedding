@@ -6,7 +6,7 @@ export const weddingData = {
   time: "",
   venue: "Madar Venue",
   address: "Tolip Gardens Hotel, Nasr City",
-  mapsUrl: "https://maps.app.goo.gl/FXkeLXh4vSudiEVY8?g_st=ic",
+  mapsUrl: "https://maps.app.goo.gl/PtSq6tPKaHNRY62D7?g_st=ic",
   rsvpName: "",
   rsvpPhone: "",
   rsvpDeadline: "",
@@ -34,4 +34,9 @@ export function getInitials(data: WeddingData = weddingData) {
     first: data.bride.charAt(0),
     second: data.groom.charAt(0),
   };
+}
+
+export function getVenueLines(data: WeddingData = weddingData) {
+  const [hotel, city = ""] = data.address.split(",").map((part) => part.trim());
+  return { hotel, city };
 }

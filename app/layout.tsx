@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Great_Vibes, Italianno } from "next/font/google";
+import { Cormorant_Garamond, Great_Vibes, Italianno, Allura } from "next/font/google";
 import { weddingData } from "@/data/wedding";
 import { asset } from "@/lib/assets";
 import "./globals.css";
@@ -28,6 +28,14 @@ const italianno = Italianno({
   preload: false,
 });
 
+const allura = Allura({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-allura",
+  display: "swap",
+  preload: false,
+});
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -48,12 +56,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cormorant.variable} ${greatVibes.variable} ${italianno.variable}`}
+      className={`${cormorant.variable} ${greatVibes.variable} ${italianno.variable} ${allura.variable}`}
       style={{
         background: "#5B0F22",
-        ["--tex-paper" as string]: `url("${asset("/textures/paper.png")}")`,
+        ["--tex-paper" as string]: `url("${asset("/textures/paper-plain.png")}")`,
         ["--tex-envelope" as string]: `url("${asset("/textures/envelope-closed.png")}")`,
         ["--tex-burgundy" as string]: `url("${asset("/textures/burgundy.png")}")`,
+        ["--tex-botanical" as string]: `url("${asset("/textures/envelope-botanical.png")}")`,
+        ["--tex-end" as string]: `url("${asset("/textures/end-botanical.png")}")`,
         ["--tex-grain" as string]: `url("${asset("/textures/grain.png")}")`,
       }}
     >

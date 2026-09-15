@@ -1,23 +1,17 @@
-import { getInitials, weddingData } from "@/data/wedding";
 import { asset } from "@/lib/assets";
 
 export function MonogramScreen() {
-  const initials = getInitials(weddingData);
-
   return (
     <div className="monogram" data-layer="monogram">
       <div className="monogram-paper" />
-      <div className="monogram-mark">
+      <div className="monogram-crest-wrap">
         <img
-          className="monogram-frame"
-          src={asset("/textures/monogram.png")}
+          className="monogram-crest"
+          data-crest="ra"
+          src={asset("/textures/ra-crest.png")}
           alt=""
           draggable={false}
         />
-        <div className="monogram-initials" aria-label={`${initials.first} ${initials.second}`}>
-          <span className="mono-letter mono-first">{initials.first}</span>
-          <span className="mono-letter mono-second">{initials.second}</span>
-        </div>
       </div>
     </div>
   );
