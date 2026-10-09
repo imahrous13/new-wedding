@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { getVenueLines, weddingData } from "@/data/wedding";
 import { CharText } from "./CharText";
+import { asset } from "@/lib/assets";
 import { MapLink } from "./MapLink";
 
 export function IntroMessage() {
@@ -51,6 +52,7 @@ export function CoupleNames() {
 
   return (
     <div className="scene scene-names" data-scene="names">
+      <img className="quill-pen" data-writing-pen src={asset("/textures/quill-pen.png")} alt="" draggable={false} />
       <div className="kicker-block">
         <CharText className="kicker" part="getting" text="WE'RE GETTING" />
         <CharText className="kicker" part="married" text="MARRIED" />

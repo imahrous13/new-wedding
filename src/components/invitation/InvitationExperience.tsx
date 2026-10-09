@@ -13,6 +13,7 @@ import { asset } from "@/lib/assets";
 import { MapLink } from "./MapLink";
 
 const TEXTURES = [
+  asset("/textures/quill-pen.png"),
   asset("/textures/envelope-closed.png"),
   asset("/textures/wax-seal.png"),
   asset("/textures/envelope-botanical.png"),
@@ -278,11 +279,11 @@ export function InvitationExperience() {
         hidden: 12.85,
         groups: [
           { selector: '[data-part="getting"] .ch, [data-part="married"] .ch', at: 7.05, stagger: { amount: 0.7, from: "random" } },
-          { selector: '[data-part="groom"] .ch', at: 7.45, stagger: 0.06 },
           { selector: '[data-part="ampersand"] .ch', at: 8.15, stagger: 0.04 },
-          { selector: '[data-part="bride"] .ch', at: 8.35, stagger: 0.08 },
         ],
       });
+
+      addNamesInkReveal(timeline, q, 7.6);
 
       addCinematicScene(timeline, q, "date", {
         start: 13.0,
@@ -681,4 +682,109 @@ function addScene(
   }, start);
   timeline.to(scene, { opacity: 0, duration: 0.6, ease: TEXT_EASE }, end);
   timeline.set(scene, { visibility: "hidden" }, end + 0.6);
+}
+
+function addNamesInkReveal(
+  timeline: gsap.core.Timeline,
+  q: ReturnType<typeof gsap.utils.selector>,
+  start: number,
+) {
+  const scene = q('[data-scene="names"]')[0] as HTMLElement | undefined;
+  const pen = q('[data-writing-pen]')[0];
+  const words = [
+    q('[data-part="groom"] .ch-connected')[0],
+    q('[data-part="bride"] .ch-connected')[0],
+  ].filter((element): element is HTMLElement => element instanceof HTMLElement);
+
+  if (!scene || !pen || words.length !== 2) return;
+
+  const writingPoint = (word: HTMLElement, side: "right" | "left") => {
+    const sceneRect = scene.getBoundingClientRect();
+    const rect = word.getBoundingClientRect();
+    // Measure at playback time: the English names fit themselves after fonts load.
+    const nibX = (pen as HTMLImageElement).offsetWidth * 0.91;
+    const nibY = (pen as HTMLImageElement).offsetHeight * 0.91;
+    return {
+      x: (side === "right" ? rect.right : rect.left) - sceneRect.left - nibX,
+      y: rect.top - sceneRect.top - Number(gsap.getProperty(word, "y")) + rect.height * 0.68 - nibY,
+    };
+  };
+  const firstStart = () => writingPoint(words[0], "left");
+  const firstEnd = () => writingPoint(words[0], "right");
+  const secondStart = () => writingPoint(words[1], "left");
+  const secondEnd = () => writingPoint(words[1], "right");
+
+  const writeWord = (
+    word: HTMLElement,
+    from: () => { x: number; y: number },
+    to: () => { x: number; y: number },
+    duration: number,
+    at: number,
+  ) => {
+    const driver = { progress: 0 };
+    timeline.set(word, {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      // English ink follows the nib from the left edge toward the right.
+      clipPath: "inset(-45% 100% -35% -8%)",
+    }, at);
+
+    timeline.to(driver, {
+      progress: 1,
+      duration,
+      ease: "power1.inOut",
+      onUpdate: () => {
+        const progress = driver.progress;
+        const begin = from();
+        const end = to();
+        const sceneRect = scene.getBoundingClientRect();
+        const x = begin.x + (end.x - begin.x) * progress;
+        const y = begin.y + (end.y - begin.y) * progress + Math.sin(progress * Math.PI) * sceneRect.height * 0.018;
+        const revealInset = `${Math.max(0, (1 - progress) * 100)}%`;
+
+        gsap.set(pen, { x, y });
+        gsap.set(word, { clipPath: `inset(-45% ${revealInset} -35% -8%)` });
+      },
+    }, at);
+    timeline.set(word, {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      clipPath: "inset(-45% -8% -35% -8%)",
+    }, at + duration + 0.01);
+  };
+
+  timeline.set(pen, {
+    opacity: 0,
+    x: () => firstStart().x - scene.clientWidth * 0.1,
+    y: () => firstStart().y - scene.clientHeight * 0.12,
+    rotation: -20,
+    transformOrigin: "92% 80%",
+  }, start - 0.38);
+  timeline.to(pen, {
+    opacity: 1,
+    x: () => firstStart().x,
+    y: () => firstStart().y,
+    rotation: -12,
+    duration: 0.58,
+    ease: "power2.out",
+  }, start - 0.38);
+  writeWord(words[0], firstStart, firstEnd, 1.45, start);
+  timeline.to(pen, {
+    x: () => secondStart().x,
+    y: () => secondStart().y - scene.clientHeight * 0.03,
+    rotation: -17,
+    duration: 0.52,
+    ease: "power2.inOut",
+  }, start + 1.65);
+  writeWord(words[1], secondStart, secondEnd, 1.35, start + 1.85);
+  timeline.to(pen, {
+    opacity: 0,
+    x: () => scene.clientWidth * 1.12,
+    y: () => scene.clientHeight * 0.12,
+    rotation: -20,
+    duration: 0.72,
+    ease: "power2.in",
+  }, start + 3.45);
 }

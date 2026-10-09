@@ -1080,3 +1080,21 @@ body {
 .stage:focus-visible .open-hint {
   color: rgba(239, 232, 220, 0.7);
 }
+
+.scene-names .script-name .ch-connected {
+  will-change: clip-path, opacity, filter;
+}
+
+.quill-pen {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  width: clamp(118px, 30cqw, 190px);
+  height: auto;
+  overflow: visible;
+  opacity: 0;
+  filter: drop-shadow(0 4px 5px rgba(48, 12, 20, 0.24));
+  pointer-events: none;
+  will-change: transform, opacity;
+}
